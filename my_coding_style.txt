@@ -1,0 +1,70 @@
+										my Coding Style
+ 1、目录命名：小写+下划线
+
+ 2、文件命名：小写+下划线
+
+ 3、文件描述：
+     /*************************************************************************
+     * 文    件 : xxx.h
+     * 编 写 人	：xxx
+     * 描    述	：xxx
+     * 编写时间	：2020-03-12
+     * 版    本	：v1.2
+    **************************************************************************/
+   
+  4、结构体命名：小写+下划线
+  	struct list_node
+  	{
+  		struct list_node *next;
+  		struct list_node *prev;
+  	};
+  	类型名重定义加"_t"：typedef struct list_node list_t
+    引用结构体,清楚明了。#include "xxx.h"   struct list_node *list_p; 
+
+    typedef struct list_t
+    {
+      uint8_t *next;
+      uint8_t *prev;
+    }list_t;
+
+    定义全局变量：extern list_t frame;
+
+  5、宏定义命名：大写+下划线
+
+  6、函数命名：小写+下划线
+
+  7、对齐：使用TAB或4空格对齐。switch和case左对齐
+	switch (value)
+	{
+	case value1:
+		break;
+	}
+
+  8、空格的使用：算术符号前后加空格，if,for,;等后面加空格
+    if (x <= y)
+  	{
+  		/* others */
+  	}
+  	for (index = 0; index < MAX_NUM; index++)
+  	{
+  		/* others */
+  	}
+
+  9、函数组织：不超过100行代码，应该将其功能拆分成小函数，使得每个函数简化易于理解。
+
+  10、变量命名：
+  	全局变量：g_xxx
+  	静态变量：s_xxx
+
+  11、注释规则：使用/* comment */，而不使用//comment，考虑到有的编译器仅支持/**/
+
+  12、表达式：使用"==",将常量放在"=="的左边，避免误写为"="
+
+  13、判断语句用法：
+  	布尔类型变量：if (flag)和if (!flag)
+  	整形变量：if (value == 0)和if (value != 0)
+
+  14、工程代码编码格式：utf-8，tab键设置4个空格大小。
+
+
+
