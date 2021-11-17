@@ -19,7 +19,7 @@ int main()
 {
 	B b;
 	b.Func1();    //B从A继承了函数Func1
-	b.Func2();	  //N从A继承了函数Func2
+	b.Func2();	  //B从A继承了函数Func2
 	b.Func3();
 	b.Func4();
 }
