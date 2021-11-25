@@ -12,22 +12,24 @@
  * 版    本	：v1.2
 **************************************************************************/
    
-  4、结构体命名：小写+下划线
+ 4、（1）结构体命名：小写+下划线
   	struct list_node
   	{
   		struct list_node *next;
   		struct list_node *prev;
   	};
-  	类型名重定义加"_t"：typedef struct list_node list_t
-    引用结构体,清楚明了。#include "xxx.h"   struct list_node *list_p; 
+  	类型名重定义加"_t"：typedef struct list_node list_node_t
+    引用结构体,清楚明了。#include "xxx.h"   struct list_node *list_node_pt; 
 
-    typedef struct list_t
-    {
-      uint8_t *next;
-      uint8_t *prev;
-    }list_t;
-
-    定义全局变量：extern list_t frame;
+	（2）结构体命名：首字母大写
+	struct ListNode
+	{
+		struct ListNode *next;
+		struct ListNode *prev;
+	}ListNode, *PListNode;
+	
+	ListNode tListNode;
+	PListNode ptListNode;
 
   5、宏定义命名：大写+下划线
 
