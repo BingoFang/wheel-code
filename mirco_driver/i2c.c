@@ -21,10 +21,10 @@
 ************************************************************************/
 /*
 	IIC写过程：Start信号->IIC发送(七位地址位+0（W）)->等待应答信号（有应答表明从设备收到，非应答则停止发送）
-  	->IIC发送一个字节(数据)->等待应答信号->Stop信号    
+  	->IIC发送一个字节(数据)->等待应答信号->Stop信号
   IIC读过程：Start信号->IIC发送(七位地址位+0（W）)->等待应答信号->Staty信号->IIC发送(七位地址位+1（R）)->等待应答信号->读取一个字节数据发送应答信号（如果就一个字节不想读了发送一个非应答信号）->Stop信号
   注：主机每写一个字节都要等待从机是否有应答信号，数据采集在时钟高电平进行。
-  
+
   SPI写过程：先写入8bits（0（W）+七位地址位），根据SDIO的高低电平开始写入16位数据。
   SPI读过程：先写入8bits（1（R）+七位地址位），根据SDIO的高低电平开始读出16位数据。
   注：spi操作写入和读出是靠沿采样，根据不同IC的datasheet编写时序。
@@ -48,40 +48,40 @@
 
 //初始化IIC
 void IIC_Init(void)
-{					     
-	GPIO_InitTypeDef GPIO_InitStructure;
-	RCC_APB2PeriphClockCmd(	RCC_APB2Periph_GPIOB, ENABLE );	
-	   
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10|GPIO_Pin_11;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;   //推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOB,GPIO_Pin_10|GPIO_Pin_11); 				//PB10,PB11 输出高
-  DS1307_SetRtc(Set_Rtc_Code);
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+    RCC_APB2PeriphClockCmd(	RCC_APB2Periph_GPIOB, ENABLE );
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;   //推挽输出
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_SetBits(GPIOB, GPIO_Pin_10 | GPIO_Pin_11); 				//PB10,PB11 输出高
+    DS1307_SetRtc(Set_Rtc_Code);
 }
 
 //产生IIC起始信号
 void IIC_Start(void)
 {
-	SDA_OUT();     //sda线输出
-	IIC_SDA=1;	  	  
-	IIC_SCL=1;
-	delay_us(4);
- 	IIC_SDA=0;//START:when CLK is high,DATA change form high to low 
-	delay_us(4);
-	IIC_SCL=0;//钳住IIC总线，准备发送或接收数据 
-}	  
+    SDA_OUT();     //sda线输出
+    IIC_SDA = 1;
+    IIC_SCL = 1;
+    delay_us(4);
+    IIC_SDA = 0; //START:when CLK is high,DATA change form high to low
+    delay_us(4);
+    IIC_SCL = 0; //钳住IIC总线，准备发送或接收数据
+}
 
 //产生IIC停止信号
 void IIC_Stop(void)
 {
-	SDA_OUT();//sda线输出
-	IIC_SCL=0;
-	IIC_SDA=0;//STOP:when CLK is high DATA change form low to high
- 	delay_us(4);
-	IIC_SCL=1; 
-	IIC_SDA=1;//发送IIC总线结束信号
-	delay_us(4);							   	
+    SDA_OUT();//sda线输出
+    IIC_SCL = 0;
+    IIC_SDA = 0; //STOP:when CLK is high DATA change form low to high
+    delay_us(4);
+    IIC_SCL = 1;
+    IIC_SDA = 1; //发送IIC总线结束信号
+    delay_us(4);
 }
 
 //等待应答信号到来
@@ -89,124 +89,126 @@ void IIC_Stop(void)
 //        0，接收应答成功
 u8 IIC_Wait_Ack(void)
 {
-	u8 ucErrTime=0;
-	SDA_IN();      //SDA设置为输入  
-	IIC_SDA=1;delay_us(1);	   
-	IIC_SCL=1;delay_us(1);	 
-	while(READ_SDA)
-	{
-		ucErrTime++;
-		if(ucErrTime>250)
-		{
-			IIC_Stop();
-			return 1;
-		}
-	}
-	IIC_SCL=0;//时钟输出0 	   
-	return 0;  
-} 
+    u8 ucErrTime = 0;
+    SDA_IN();      //SDA设置为输入
+    IIC_SDA = 1;
+    delay_us(1);
+    IIC_SCL = 1;
+    delay_us(1);
+    while (READ_SDA)
+    {
+        ucErrTime++;
+        if (ucErrTime > 250)
+        {
+            IIC_Stop();
+            return 1;
+        }
+    }
+    IIC_SCL = 0; //时钟输出0
+    return 0;
+}
 
 //产生ACK应答
 void IIC_Ack(void)
 {
-	IIC_SCL=0;
-	SDA_OUT();
-	IIC_SDA=0;
-	delay_us(2);
-	IIC_SCL=1;
-	delay_us(2);
-	IIC_SCL=0;
+    IIC_SCL = 0;
+    SDA_OUT();
+    IIC_SDA = 0;
+    delay_us(2);
+    IIC_SCL = 1;
+    delay_us(2);
+    IIC_SCL = 0;
 }
 
-//不产生ACK应答		    
+//不产生ACK应答
 void IIC_NAck(void)
 {
-	IIC_SCL=0;
-	SDA_OUT();
-	IIC_SDA=1;
-	delay_us(2);
-	IIC_SCL=1;
-	delay_us(2);
-	IIC_SCL=0;
-}				
-	 				     
+    IIC_SCL = 0;
+    SDA_OUT();
+    IIC_SDA = 1;
+    delay_us(2);
+    IIC_SCL = 1;
+    delay_us(2);
+    IIC_SCL = 0;
+}
+
 //IIC发送一个字节
 //返回从机有无应答
 //1，有应答
-//0，无应答			  
+//0，无应答
 void IIC_Send_Byte(u8 txd)
-{                        
-  u8 t;   
-	SDA_OUT(); 	    
-  IIC_SCL=0;//拉低时钟开始数据传输
-  for(t=0;t<8;t++)
-  {              
-    //IIC_SDA=(txd&0x80)>>7;
-		if((txd&0x80)>>7)
-			IIC_SDA=1;
-		else
-			IIC_SDA=0;
-		txd<<=1; 	  
-		delay_us(2);   //对TEA5767这三个延时都是必须的
-		IIC_SCL=1;
-		delay_us(2); 
-		IIC_SCL=0;	
-		delay_us(2);
-  }	 
-} 	   
- 
-//读1个字节，ack=1时，发送ACK，ack=0，发送nACK   
+{
+    u8 t;
+    SDA_OUT();
+    IIC_SCL = 0; //拉低时钟开始数据传输
+    for (t = 0; t < 8; t++)
+    {
+        //IIC_SDA=(txd&0x80)>>7;
+        if ((txd & 0x80) >> 7)
+            IIC_SDA = 1;
+        else
+            IIC_SDA = 0;
+        txd <<= 1;
+        delay_us(2);   //对TEA5767这三个延时都是必须的
+        IIC_SCL = 1;
+        delay_us(2);
+        IIC_SCL = 0;
+        delay_us(2);
+    }
+}
+
+//读1个字节，ack=1时，发送ACK，ack=0，发送nACK
 u8 IIC_Read_Byte(unsigned char ack)
 {
-	unsigned char i,receive=0;
-	SDA_IN();//SDA设置为输入
-  for(i=0;i<8;i++ )
-	{
-    IIC_SCL=0; 
-    delay_us(2);
-		IIC_SCL=1;
-    receive<<=1;
-    if(READ_SDA)receive++;   
-		delay_us(1); 
-  }					 
+    unsigned char i, receive = 0;
+    SDA_IN();//SDA设置为输入
+    for (i = 0; i < 8; i++ )
+    {
+        IIC_SCL = 0;
+        delay_us(2);
+        IIC_SCL = 1;
+        receive <<= 1;
+        if (READ_SDA)receive++;
+        delay_us(1);
+    }
     if (!ack)
-     IIC_NAck();//发送nACK
+        IIC_NAck();//发送nACK
     else
-     IIC_Ack(); //发送ACK   
-  return receive;
+        IIC_Ack(); //发送ACK
+    return receive;
 }
 
 /************************针对不同iic通讯设备的读写时序存在差异，详细见器件数据手册**************************************/
 //这里列举了RDA5820读写操作过程
 u16 RDA5820_Read_Reg(u8 addr)
 {
-		u16 res;
-		IIC_Start();
-		IIC_Send_Byte(RDA5820_write); //发送写命令
-		IIC_Wait_Ack();
-		IIC_Send_Byte(RDA5820_addr);
-		IIC_Wait_Ack();
-		
-		IIC_Start();
-		IIC_Send_Byte(RDA5820_read);  //发送读命令
-		IIC_Wait_Ack();
-		res = IIC_Read_Byte(1); //read high 8 byte ,send ack
-		res <<= 8;
-		res |= IIC_Read_Byte(0); //read low 8 byte ,send nack
-		IIC_Stop();
-		return res;
+    u16 res;
+    IIC_Start();
+    IIC_Send_Byte(RDA5820_write); //发送写命令
+    IIC_Wait_Ack();
+    IIC_Send_Byte(RDA5820_addr);
+    IIC_Wait_Ack();
+
+    IIC_Start();
+    IIC_Send_Byte(RDA5820_read);  //发送读命令
+    IIC_Wait_Ack();
+    res = IIC_Read_Byte(1); //read high 8 byte ,send ack
+    res <<= 8;
+    res |= IIC_Read_Byte(0); //read low 8 byte ,send nack
+    IIC_Stop();
+    return res;
 }
 
-void RDA5820_Write_Reg(u8 addr,u16 data)
+void RDA5820_Write_Reg(u8 addr, u16 data)
 {
-		IIC_Start();
-		IIC_Send_Byte(RDA5820_write);  //发送写命令
-		IIC_Wait_Ack();
-		IIC_Send_Byte(addr); 
-		IIC_Wait_Ack();
-		IIC_Send_Byte(data >> 8);   //high byte
-		IIC_Wait_Ack();
-		IIC_Send_Byte(data & 0xff); //low byte
-		IIC_Wait_Ack();
-		IIC_Stop();
+    IIC_Start();
+    IIC_Send_Byte(RDA5820_write);  //发送写命令
+    IIC_Wait_Ack();
+    IIC_Send_Byte(addr);
+    IIC_Wait_Ack();
+    IIC_Send_Byte(data >> 8);   //high byte
+    IIC_Wait_Ack();
+    IIC_Send_Byte(data & 0xff); //low byte
+    IIC_Wait_Ack();
+    IIC_Stop();
 }
